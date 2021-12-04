@@ -1,7 +1,12 @@
 import logging
 import os
+from dotenv import load_dotenv
 from telegram import Update, ForceReply
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+
+load_dotenv()
+
+API_KEY = os.getenv('API_KEY')
 
 logging.basicConfig(
   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -9,7 +14,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-API_KEY = os.getenv('API_KEY')
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
