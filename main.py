@@ -1,11 +1,10 @@
 import logging
 import os
 from dotenv import load_dotenv
-from telegram import Update, ForceReply
+from telegram import Update, ForceReply, InlineKeyboardButton, replymarkup, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 load_dotenv()
-
 API_KEY = os.getenv('API_KEY')
 
 logging.basicConfig(
@@ -14,13 +13,24 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     user = update.effective_user
-    update.message.reply_markdown_v2(
-        fr'Hi {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
+    logger.info("User %s started the conversation.", user.first_name)
+
+    # build InlineKeyboard for food ordering
+    keyboard = [
+      [
+        InlineKeyboardButton("Char Siew rice", callback_data="Char Siew rice"),
+        InlineKeyboardButton("Roasted pork rice", callback_data="Roasted pork rice")
+      ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text(
+        f'Hi {user.name}. Start ordering now!',
+        reply_markup=reply_markup,
     )
 
 def help_command(update: Update, context: CallbackContext) -> None:
@@ -50,7 +60,7 @@ def main() -> None:
 
     # Start the Bot
     updater.start_polling()
-
+    
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
