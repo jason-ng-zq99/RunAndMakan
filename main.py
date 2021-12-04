@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # stages of ordering
 NUMBER_OF_MEATS, DISH = range(2)
 # callback data
-ONE_MEAT, TWO_MEATS, CHARSIEW_RICE, ROASTEDPORK_RICE, DUCK_RICE, CHARSIEW_ROASTPORK_RICE = range(6)
+ONE_MEAT, TWO_MEATS, CHARSIEW_RICE, ROASTEDPORK_RICE, DUCK_RICE, CHARSIEW_ROASTEDPORK_RICE, CHARSIEW_DUCK_RICE, ROASTEDPORK_DUCK_RICE = range(8)
 
 def start(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /start is issued."""
@@ -26,8 +26,8 @@ def start(update: Update, context: CallbackContext) -> int:
     # build InlineKeyboard for food ordering
     keyboard = [
       [
-        InlineKeyboardButton("One meat", callback_data=str(NUMBER_OF_MEATS)),
-        InlineKeyboardButton("Two meats", callback_data=str(NUMBER_OF_MEATS)),
+        InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
+        InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)),
       ]
     ]
 
@@ -58,7 +58,7 @@ def one_meat(update: Update, context: CallbackContext) -> None:
         InlineKeyboardButton("Roasted pork rice", callback_data=str(ROASTEDPORK_RICE)),
       ],
       [
-        InlineKeyboardButton("Duck rice", callback_data=str(DUCK_RICE))
+        InlineKeyboardButton("Duck rice", callback_data=str(DUCK_RICE)),
       ]
     ]
 
@@ -66,6 +66,32 @@ def one_meat(update: Update, context: CallbackContext) -> None:
 
     query.edit_message_text(
         text="You chose to order a dish with ONE meat.\n Choose your dish.", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def two_meats(update: Update, context: CallbackContext) -> None:
+    """Ordering form for one meat options"""
+    query = update.callback_query
+    query.answer()
+
+    # build InlineKeyboard for food ordering
+    keyboard = [
+      [
+        InlineKeyboardButton("Char Siew + Roast Pork rice", callback_data=str(CHARSIEW_ROASTEDPORK_RICE)),
+      ],
+      [
+        InlineKeyboardButton("Char Siew + Duck rice", callback_data=str(CHARSIEW_DUCK_RICE)),
+      ],
+      [
+        InlineKeyboardButton("Roasted Pork + Duck rice", callback_data=str(ROASTEDPORK_DUCK_RICE)),
+      ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    query.edit_message_text(
+        text="You chose to order a dish with TWO meats.\n Choose your dish.", reply_markup=reply_markup
     )
 
     return DISH
@@ -118,6 +144,54 @@ def duck_rice(update: Update, context: CallbackContext) -> None:
 
     return DISH
 
+def charsiewroastedpork_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Charsiew + Roasted Pork rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Charsiew + Roasted Pork rice", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def charsiewduck_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Charsiew + Duck rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Charsiew + Duck rice", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def roastedporkduck_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Roasted Pork + Duck rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Roasted Pork + Duck rice", reply_markup=reply_markup
+    )
+
+    return DISH
+
 
 def main() -> None:
     """Start the bot."""
@@ -132,11 +206,15 @@ def main() -> None:
         states={
             NUMBER_OF_MEATS: [
                 CallbackQueryHandler(one_meat, pattern='^' + str(ONE_MEAT) + '$'),
+                CallbackQueryHandler(two_meats, pattern='^' + str(TWO_MEATS) + '$'),
             ],
             DISH: [
                 CallbackQueryHandler(charsiew_rice, pattern='^' + str(CHARSIEW_RICE) + '$'),
                 CallbackQueryHandler(roastedpork_rice, pattern='^' + str(ROASTEDPORK_RICE) + '$'),
                 CallbackQueryHandler(duck_rice, pattern='^' + str(DUCK_RICE) + '$'),
+                CallbackQueryHandler(charsiewroastedpork_rice, pattern='^' + str(CHARSIEW_ROASTEDPORK_RICE) + '$'),
+                CallbackQueryHandler(charsiewduck_rice, pattern='^' + str(CHARSIEW_DUCK_RICE) + '$'),
+                CallbackQueryHandler(roastedporkduck_rice, pattern='^' + str(ROASTEDPORK_DUCK_RICE) + '$'),
             ]
         },
         fallbacks=[CommandHandler('start', start)],
