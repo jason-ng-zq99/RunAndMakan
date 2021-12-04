@@ -1,8 +1,8 @@
 import logging
 import os
 from dotenv import load_dotenv
-from telegram import Update, ForceReply, InlineKeyboardButton, replymarkup, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext, ConversationHandler, CallbackQueryHandler, callbackqueryhandler
 
 load_dotenv()
 API_KEY = os.getenv('API_KEY')
@@ -13,7 +13,12 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def start(update: Update, context: CallbackContext) -> None:
+# stages of ordering
+NUMBER_OF_MEATS, DISH = range(2)
+# callback data
+ONE_MEAT, TWO_MEATS, CHARSIEW_RICE, ROASTEDPORK_RICE, DUCK_RICE, CHARSIEW_ROASTPORK_RICE = range(6)
+
+def start(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /start is issued."""
     user = update.effective_user
     logger.info("User %s started the conversation.", user.first_name)
@@ -21,8 +26,8 @@ def start(update: Update, context: CallbackContext) -> None:
     # build InlineKeyboard for food ordering
     keyboard = [
       [
-        InlineKeyboardButton("Char Siew rice", callback_data="Char Siew rice"),
-        InlineKeyboardButton("Roasted pork rice", callback_data="Roasted pork rice")
+        InlineKeyboardButton("One meat", callback_data=str(NUMBER_OF_MEATS)),
+        InlineKeyboardButton("Two meats", callback_data=str(NUMBER_OF_MEATS)),
       ]
     ]
 
@@ -33,14 +38,85 @@ def start(update: Update, context: CallbackContext) -> None:
         reply_markup=reply_markup,
     )
 
+    return NUMBER_OF_MEATS
+
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
 
+def one_meat(update: Update, context: CallbackContext) -> None:
+    """Ordering form for one meat options"""
+    query = update.callback_query
+    query.answer()
 
-def echo(update: Update, context: CallbackContext) -> None:
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    # build InlineKeyboard for food ordering
+    keyboard = [
+      [
+        InlineKeyboardButton("Char Siew rice", callback_data=str(CHARSIEW_RICE)),
+      ],
+      [
+        InlineKeyboardButton("Roasted pork rice", callback_data=str(ROASTEDPORK_RICE)),
+      ],
+      [
+        InlineKeyboardButton("Duck rice", callback_data=str(DUCK_RICE))
+      ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    query.edit_message_text(
+        text="You chose to order a dish with ONE meat.\n Choose your dish.", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def charsiew_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Char Siew rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Charsiew rice", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def roastedpork_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Roasted Pork rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Roasted Pork rice", reply_markup=reply_markup
+    )
+
+    return DISH
+
+def duck_rice(update: Update, context: CallbackContext) -> None:
+    """Orders Duck rice"""
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Confirm order", callback_data="confirm"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Confirm your order: Duck rice", reply_markup=reply_markup
+    )
+
+    return DISH
 
 
 def main() -> None:
@@ -51,12 +127,23 @@ def main() -> None:
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
-    # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            NUMBER_OF_MEATS: [
+                CallbackQueryHandler(one_meat, pattern='^' + str(ONE_MEAT) + '$'),
+            ],
+            DISH: [
+                CallbackQueryHandler(charsiew_rice, pattern='^' + str(CHARSIEW_RICE) + '$'),
+                CallbackQueryHandler(roastedpork_rice, pattern='^' + str(ROASTEDPORK_RICE) + '$'),
+                CallbackQueryHandler(duck_rice, pattern='^' + str(DUCK_RICE) + '$'),
+            ]
+        },
+        fallbacks=[CommandHandler('start', start)],
+    )
 
-    # on non command i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    # Add ConversationHandler to dispatcher that will be used for handling updates
+    dispatcher.add_handler(conv_handler)
 
     # Start the Bot
     updater.start_polling()
