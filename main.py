@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 order_list = {}
 
 # stages of ordering
-ORDER_LIST, NUMBER_OF_MEATS, ONE_MEAT_DISH, TWO_MEATS_DISH = range(4)
+ORDER_LIST, RESTAURANTS, RONGLIANG, RONG_LIANG_ONE_MEAT_DISH, RONG_LIANG_TWO_MEATS_DISH = range(5)
 # callback data
 RESTART = 0
 ONE_MEAT, TWO_MEATS = range(1,3)
@@ -38,8 +38,7 @@ def start(update: Update, context: CallbackContext) -> int:
     # build InlineKeyboard for food ordering
     keyboard = [
         [
-            InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
-            InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)), 
+            InlineKeyboardButton("Rong Liang", callback_data=str(RONGLIANG)),
         ],
         [
             InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
@@ -59,7 +58,34 @@ def start(update: Update, context: CallbackContext) -> int:
         reply_markup=reply_markup,
     )
 
-    return NUMBER_OF_MEATS
+    return RESTAURANTS
+
+def rongliang(update: Update, context: CallbackContext) -> int:
+    """Rong Liang ordering menu"""
+    user = update.effective_user
+    query = update.callback_query
+    query.answer()
+    logger.info("User %s has selected Rong Liang.", user.first_name)
+
+    # build InlineKeyboard for food ordering
+    keyboard = [
+        [
+            InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
+            InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)), 
+        ],
+        [
+            InlineKeyboardButton("Restart", callback_data=str(RESTART)),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    query.edit_message_text(
+        f'You have selected Rong Liang. Choose your selection now.',
+        reply_markup=reply_markup,
+    )
+
+    return RONGLIANG
 
 def restart(update: Update, context: CallbackContext) -> int:
     """Restarts ordering process."""
@@ -92,7 +118,7 @@ def restart(update: Update, context: CallbackContext) -> int:
         reply_markup=reply_markup,
     )
 
-    return NUMBER_OF_MEATS
+    return RONGLIANG
 
 def help_command(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /help is issued."""
@@ -125,7 +151,7 @@ def one_meat(update: Update, context: CallbackContext) -> int:
         text="You chose to order a dish with ONE meat.\n Choose your dish.", reply_markup=reply_markup
     )
 
-    return ONE_MEAT_DISH
+    return RONG_LIANG_ONE_MEAT_DISH
 
 def two_meats(update: Update, context: CallbackContext) -> int:
     """Ordering form for one meat options"""
@@ -154,7 +180,7 @@ def two_meats(update: Update, context: CallbackContext) -> int:
         text="You chose to order a dish with TWO meats.\n Choose your dish.", reply_markup=reply_markup
     )
 
-    return TWO_MEATS_DISH
+    return RONG_LIANG_TWO_MEATS_DISH
 
 def rongliang_dish(input_name):
     def func(update: Update, context: CallbackContext) -> int:
@@ -201,17 +227,21 @@ def main() -> None:
             ORDER_LIST: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
             ],
-            NUMBER_OF_MEATS: [
+            RESTAURANTS: [
+                CallbackQueryHandler(rongliang, pattern='^' + str(RONGLIANG) + '$'),
+            ],
+            RONGLIANG: [
+                CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
                 CallbackQueryHandler(one_meat, pattern='^' + str(ONE_MEAT) + '$'),
                 CallbackQueryHandler(two_meats, pattern='^' + str(TWO_MEATS) + '$'),
             ],
-            ONE_MEAT_DISH: [
+            RONG_LIANG_ONE_MEAT_DISH: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
                 CallbackQueryHandler(rongliang_dish(charsiew_rice), pattern='^' + str(CHARSIEW_RICE) + '$'),
                 CallbackQueryHandler(rongliang_dish(roastedpork_rice), pattern='^' + str(ROASTEDPORK_RICE) + '$'),
                 CallbackQueryHandler(rongliang_dish(duck_rice), pattern='^' + str(DUCK_RICE) + '$'), 
             ],
-            TWO_MEATS_DISH: [
+            RONG_LIANG_TWO_MEATS_DISH: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
                 CallbackQueryHandler(rongliang_dish(charsiewroastedpork_rice), pattern='^' + str(CHARSIEW_ROASTEDPORK_RICE) + '$'),
                 CallbackQueryHandler(rongliang_dish(charsiewduck_rice), pattern='^' + str(CHARSIEW_DUCK_RICE) + '$'),
