@@ -14,6 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 order_list = {}
+condensed_list = {}
 
 # stages of ordering
 ORDER_LIST, RESTAURANTS, RONGLIANG, MRBEAN, RONG_LIANG_ONE_MEAT_DISH, RONG_LIANG_TWO_MEATS_DISH, PANCAKE, EGGWICH, DRINKS = range(9)
@@ -81,12 +82,21 @@ def start(update: Update, context: CallbackContext) -> int:
         for j in sorted (order_list[i]): 
             order_string += f'{order_list[i][j]}x {j}\n'
 
+    order_string += "\n====Condensed orders====\n"
+    for k in sorted (condensed_list):
+        order_string += f'{condensed_list[k]}x {k}\n'
+
     update.message.reply_text(
         f'Hi {user.first_name}. Start ordering now!\n{order_string}',
         reply_markup=reply_markup,
     )
 
     return RESTAURANTS
+
+# def clear(update: Update, context: CallbackContext) -> int:
+#     """Clears all existing orders"""
+#     for i in sorted (order_list):
+#         order
 
 def rongliang(update: Update, context: CallbackContext) -> int:
     """Rong Liang ordering menu"""
@@ -140,6 +150,9 @@ def restart(update: Update, context: CallbackContext) -> int:
         for j in sorted (order_list[i]): 
             order_string += f'{order_list[i][j]}x {j}\n'
 
+    order_string += "\n====Condensed orders====\n"
+    for k in sorted (condensed_list):
+        order_string += f'{condensed_list[k]}x {k}\n'
 
     query.edit_message_text(
         f'Hi {user.first_name}. Start ordering now!\n{order_string}',
@@ -240,7 +253,6 @@ def mrbean(update: Update, context: CallbackContext) -> int:
 
 def pancake(update: Update, context: CallbackContext) -> int:
     """Mr Bean pancakes ordering menu"""
-    user = update.effective_user
     query = update.callback_query
     query.answer()
 
@@ -269,7 +281,6 @@ def pancake(update: Update, context: CallbackContext) -> int:
 
 def eggwich(update: Update, context: CallbackContext) -> int:
     """Mr Bean eggwich ordering menu"""
-    user = update.effective_user
     query = update.callback_query
     query.answer()
 
@@ -320,7 +331,7 @@ def dish(input_name):
         query.answer()
         keyboard = [
             [
-                InlineKeyboardButton("See orders", callback_data=str(RESTART)),
+                InlineKeyboardButton("See orders/Order more", callback_data=str(RESTART)),
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -334,6 +345,11 @@ def dish(input_name):
         else:
             order_list[user.first_name] = {}
             order_list[user.first_name][dish_name] = 1
+        
+        if dish_name in condensed_list:
+            condensed_list[dish_name] += 1
+        else:
+            condensed_list[dish_name] = 1
 
         query.edit_message_text(
             text=f"Confirmed order: {dish_name}", reply_markup=reply_markup
