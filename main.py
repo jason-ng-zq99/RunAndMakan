@@ -23,6 +23,13 @@ ONE_MEAT, TWO_MEATS = range(1,3)
 CHARSIEW_RICE, ROASTEDPORK_RICE, DUCK_RICE = range(1,4) 
 CHARSIEW_ROASTEDPORK_RICE, CHARSIEW_DUCK_RICE, ROASTEDPORK_DUCK_RICE = range(1,4)
 
+charsiew_rice = "Char Siew rice"
+roastedpork_rice = "Roasted Pork rice"
+duck_rice = "Duck rice"
+charsiewroastedpork_rice = "Char Siew + Roasted Pork rice"
+charsiewduck_rice = "Char Siew + Duck rice"
+roastedporkduck_rice = "Roasted Pork + Duck rice"
+
 def start(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /start is issued."""
     user = update.effective_user
@@ -30,17 +37,22 @@ def start(update: Update, context: CallbackContext) -> int:
 
     # build InlineKeyboard for food ordering
     keyboard = [
-      [
-        InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
-        InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)),
-      ]
+        [
+            InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
+            InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)), 
+        ],
+        [
+            InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
+        ]
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     order_string = "=====Current orders=====\n"
     for i in sorted (order_list):
-        order_string += f'{i}: {order_list[i]}\n'
+        order_string += f'{i}:\n'
+        for j in sorted (order_list[i]): 
+            order_string += f'{order_list[i][j]}x {j}\n'
 
     update.message.reply_text(
         f'Hi {user.first_name}. Start ordering now!\n{order_string}',
@@ -57,17 +69,23 @@ def restart(update: Update, context: CallbackContext) -> int:
 
     # build InlineKeyboard for food ordering
     keyboard = [
-      [
-        InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
-        InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)),
-      ]
+        [
+            InlineKeyboardButton("One meat", callback_data=str(ONE_MEAT)),
+            InlineKeyboardButton("Two meats", callback_data=str(TWO_MEATS)),
+        ],
+        [
+            InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
+        ]
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     order_string = "=====Current orders=====\n"
     for i in sorted (order_list):
-        order_string += f'{i}: {order_list[i]}\n'
+        order_string += f'{i}:\n'
+        for j in sorted (order_list[i]): 
+            order_string += f'{order_list[i][j]}x {j}\n'
+
 
     query.edit_message_text(
         f'Hi {user.first_name}. Start ordering now!\n{order_string}',
@@ -76,11 +94,11 @@ def restart(update: Update, context: CallbackContext) -> int:
 
     return NUMBER_OF_MEATS
 
-def help_command(update: Update, context: CallbackContext) -> None:
+def help_command(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
 
-def one_meat(update: Update, context: CallbackContext) -> None:
+def one_meat(update: Update, context: CallbackContext) -> int:
     """Ordering form for one meat options"""
     query = update.callback_query
     query.answer()
@@ -88,13 +106,13 @@ def one_meat(update: Update, context: CallbackContext) -> None:
     # build InlineKeyboard for food ordering
     keyboard = [
       [
-        InlineKeyboardButton("Char Siew rice", callback_data=str(CHARSIEW_RICE)),
+        InlineKeyboardButton(charsiew_rice, callback_data=str(CHARSIEW_RICE)),
       ],
       [
-        InlineKeyboardButton("Roasted pork rice", callback_data=str(ROASTEDPORK_RICE)),
+        InlineKeyboardButton(roastedpork_rice, callback_data=str(ROASTEDPORK_RICE)),
       ],
       [
-        InlineKeyboardButton("Duck rice", callback_data=str(DUCK_RICE)),
+        InlineKeyboardButton(duck_rice, callback_data=str(DUCK_RICE)),
       ],
       [
         InlineKeyboardButton("Restart", callback_data=str(RESTART)),
@@ -109,7 +127,7 @@ def one_meat(update: Update, context: CallbackContext) -> None:
 
     return ONE_MEAT_DISH
 
-def two_meats(update: Update, context: CallbackContext) -> None:
+def two_meats(update: Update, context: CallbackContext) -> int:
     """Ordering form for one meat options"""
     query = update.callback_query
     query.answer()
@@ -117,13 +135,13 @@ def two_meats(update: Update, context: CallbackContext) -> None:
     # build InlineKeyboard for food ordering
     keyboard = [
       [
-        InlineKeyboardButton("Char Siew + Roast Pork rice", callback_data=str(CHARSIEW_ROASTEDPORK_RICE)),
+        InlineKeyboardButton(charsiewroastedpork_rice, callback_data=str(CHARSIEW_ROASTEDPORK_RICE)),
       ],
       [
-        InlineKeyboardButton("Char Siew + Duck rice", callback_data=str(CHARSIEW_DUCK_RICE)),
+        InlineKeyboardButton(charsiewduck_rice, callback_data=str(CHARSIEW_DUCK_RICE)),
       ],
       [
-        InlineKeyboardButton("Roasted Pork + Duck rice", callback_data=str(ROASTEDPORK_DUCK_RICE)),
+        InlineKeyboardButton(roastedporkduck_rice, callback_data=str(ROASTEDPORK_DUCK_RICE)),
       ],
       [
         InlineKeyboardButton("Restart", callback_data=str(RESTART)),
@@ -138,120 +156,36 @@ def two_meats(update: Update, context: CallbackContext) -> None:
 
     return TWO_MEATS_DISH
 
-def charsiew_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Char Siew rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
+def rongliang_dish(input_name):
+    def func(update: Update, context: CallbackContext) -> int:
+        """Orders dish_name"""
+        dish_name = input_name
+        query = update.callback_query
+        query.answer()
+        keyboard = [
+            [
+                InlineKeyboardButton("See orders", callback_data=str(RESTART)),
+            ]
         ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    user = update.effective_user
-    order_list[user.first_name] = "Char Siew rice"
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        user = update.effective_user
 
-    query.edit_message_text(
-        text="Confirmed order: Charsiew rice", reply_markup=reply_markup
-    )
+        if user.first_name in order_list:
+            if dish_name in order_list[user.first_name]:
+                order_list[user.first_name][dish_name] += 1
+            else: 
+                order_list[user.first_name][dish_name] = 1
+        else:
+            order_list[user.first_name] = {}
+            order_list[user.first_name][dish_name] = 1
 
-    return ORDER_LIST
+        query.edit_message_text(
+            text=f"Confirmed order: {dish_name}", reply_markup=reply_markup
+        )
 
-def roastedpork_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Roasted Pork rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    user = update.effective_user
-    order_list[user.first_name] = "Roasted Pork rice"
+        return ORDER_LIST
+    return func
 
-    query.edit_message_text(
-        text="Confirmed order: Roasted Pork rice", reply_markup=reply_markup
-    )
-
-    return ORDER_LIST
-
-def duck_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Duck rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    user = update.effective_user
-    order_list[user.first_name] = "Duck rice"
-
-    query.edit_message_text(
-        text="Confirmed order: Duck rice", reply_markup=reply_markup
-    )
-
-    return ORDER_LIST
-
-def charsiewroastedpork_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Charsiew + Roasted Pork rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    user = update.effective_user
-    order_list[user.first_name] = "Char Siew + Roasted Pork rice"
-
-    query.edit_message_text(
-        text="Confirmed order: Charsiew + Roasted Pork rice", reply_markup=reply_markup
-    )
-   
-    return ORDER_LIST
-
-def charsiewduck_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Charsiew + Duck rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    user = update.effective_user
-    order_list[user.first_name] = "Char Siew + Duck rice"
-
-    query.edit_message_text(
-        text="Confirmed order: Charsiew + Duck rice", reply_markup=reply_markup
-    )
-
-    return ORDER_LIST
-
-def roastedporkduck_rice(update: Update, context: CallbackContext) -> None:
-    """Orders Roasted Pork + Duck rice"""
-    query = update.callback_query
-    query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    user = update.effective_user
-    order_list[user.first_name] = "Roasted Pork + Duck rice"
-
-    query.edit_message_text(
-        text="Confirmed: Roasted Pork + Duck rice", reply_markup=reply_markup
-    )
-
-    return ORDER_LIST
 
 def main() -> None:
     """Start the bot."""
@@ -273,15 +207,15 @@ def main() -> None:
             ],
             ONE_MEAT_DISH: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
-                CallbackQueryHandler(charsiew_rice, pattern='^' + str(CHARSIEW_RICE) + '$'),
-                CallbackQueryHandler(roastedpork_rice, pattern='^' + str(ROASTEDPORK_RICE) + '$'),
-                CallbackQueryHandler(duck_rice, pattern='^' + str(DUCK_RICE) + '$'), 
+                CallbackQueryHandler(rongliang_dish(charsiew_rice), pattern='^' + str(CHARSIEW_RICE) + '$'),
+                CallbackQueryHandler(rongliang_dish(roastedpork_rice), pattern='^' + str(ROASTEDPORK_RICE) + '$'),
+                CallbackQueryHandler(rongliang_dish(duck_rice), pattern='^' + str(DUCK_RICE) + '$'), 
             ],
             TWO_MEATS_DISH: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
-                CallbackQueryHandler(charsiewroastedpork_rice, pattern='^' + str(CHARSIEW_ROASTEDPORK_RICE) + '$'),
-                CallbackQueryHandler(charsiewduck_rice, pattern='^' + str(CHARSIEW_DUCK_RICE) + '$'),
-                CallbackQueryHandler(roastedporkduck_rice, pattern='^' + str(ROASTEDPORK_DUCK_RICE) + '$'),
+                CallbackQueryHandler(rongliang_dish(charsiewroastedpork_rice), pattern='^' + str(CHARSIEW_ROASTEDPORK_RICE) + '$'),
+                CallbackQueryHandler(rongliang_dish(charsiewduck_rice), pattern='^' + str(CHARSIEW_DUCK_RICE) + '$'),
+                CallbackQueryHandler(rongliang_dish(roastedporkduck_rice), pattern='^' + str(ROASTEDPORK_DUCK_RICE) + '$'),
             ],
         },
         fallbacks=[CommandHandler('start', start)],
