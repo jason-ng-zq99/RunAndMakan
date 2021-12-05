@@ -144,7 +144,7 @@ def charsiew_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Go back to the start", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -163,7 +163,7 @@ def roastedpork_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Go back to the start", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -182,7 +182,7 @@ def duck_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Go back to the start", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -201,7 +201,7 @@ def charsiewroastedpork_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Go back to the start", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -221,7 +221,7 @@ def charsiewduck_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Restart", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -240,7 +240,7 @@ def roastedporkduck_rice(update: Update, context: CallbackContext) -> None:
     query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Go back to the start", callback_data=str(RESTART)),
+            InlineKeyboardButton("See orders", callback_data=str(RESTART)),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
