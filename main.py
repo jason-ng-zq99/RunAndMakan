@@ -21,6 +21,7 @@ ORDER_LIST, RESTAURANTS, RONGLIANG, MRBEAN, RONG_LIANG_ONE_MEAT_DISH, RONG_LIANG
 
 # callback data
 RESTART = 0
+CLEAR = 999
 
 # Rong Liang
 ONE_MEAT, TWO_MEATS = range(1,3)
@@ -71,6 +72,9 @@ def start(update: Update, context: CallbackContext) -> int:
         ],
         [
             InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
+        ],
+        [
+            InlineKeyboardButton("Clear all orders", callback_data=str(CLEAR)),
         ]
     ]
 
@@ -87,16 +91,83 @@ def start(update: Update, context: CallbackContext) -> int:
         order_string += f'{condensed_list[k]}x {k}\n'
 
     update.message.reply_text(
-        f'Hi {user.first_name}. Start ordering now!\n{order_string}',
+        f'Hi {user.first_name}. Start ordering now!\n\n{order_string}',
         reply_markup=reply_markup,
     )
 
     return RESTAURANTS
 
-# def clear(update: Update, context: CallbackContext) -> int:
-#     """Clears all existing orders"""
-#     for i in sorted (order_list):
-#         order
+def restart(update: Update, context: CallbackContext) -> int:
+    """Restarts ordering process."""
+    user = update.effective_user
+    query = update.callback_query
+    query.answer()
+
+    # build InlineKeyboard for food ordering
+    keyboard = [
+        [
+            InlineKeyboardButton("Rong Liang", callback_data=str(RONGLIANG)),
+            InlineKeyboardButton("Mr Bean", callback_data=str(MRBEAN)),
+        ],
+        [
+            InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
+        ],
+        [
+            InlineKeyboardButton("Clear all orders", callback_data=str(CLEAR)),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    order_string = "=====Current orders=====\n"
+    for i in sorted (order_list):
+        order_string += f'{i}:\n'
+        for j in sorted (order_list[i]): 
+            order_string += f'{order_list[i][j]}x {j}\n'
+
+    order_string += "\n====Condensed orders====\n"
+    for k in sorted (condensed_list):
+        order_string += f'{condensed_list[k]}x {k}\n'
+
+    query.edit_message_text(
+        f'Hi {user.first_name}. Start ordering now!\n\n{order_string}',
+        reply_markup=reply_markup,
+    )
+
+    return RESTAURANTS
+
+def clear(update: Update, context: CallbackContext) -> int:
+    """Clears all existing orders"""
+    query = update.callback_query
+    query.answer()
+    user = update.effective_user
+    logger.info("User %s has cleared all orders.", user.first_name)
+
+    keyboard = [
+        [
+            InlineKeyboardButton("Restart", callback_data=str(RESTART)),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if user.first_name not in order_list:
+        query.edit_message_text(
+            f'You have not made an order yet.',
+            reply_markup=reply_markup,
+        ) 
+    else:
+        for i in order_list[user.first_name]:
+            condensed_list[i] -= 1
+            if condensed_list[i] <= 0:
+                condensed_list.pop(i)
+        order_list.pop(user.first_name)
+        query.edit_message_text(
+            f'Orders cleared.',
+            reply_markup=reply_markup,
+        ) 
+
+    return ORDER_LIST        
 
 def rongliang(update: Update, context: CallbackContext) -> int:
     """Rong Liang ordering menu"""
@@ -125,42 +196,6 @@ def rongliang(update: Update, context: CallbackContext) -> int:
 
     return RONGLIANG
 
-def restart(update: Update, context: CallbackContext) -> int:
-    """Restarts ordering process."""
-    user = update.effective_user
-    query = update.callback_query
-    query.answer()
-
-    # build InlineKeyboard for food ordering
-    keyboard = [
-        [
-            InlineKeyboardButton("Rong Liang", callback_data=str(RONGLIANG)),
-            InlineKeyboardButton("Mr Bean", callback_data=str(MRBEAN)),
-        ],
-        [
-            InlineKeyboardButton("Refresh order list", callback_data=str(RESTART)),
-        ]
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    order_string = "=====Current orders=====\n"
-    for i in sorted (order_list):
-        order_string += f'{i}:\n'
-        for j in sorted (order_list[i]): 
-            order_string += f'{order_list[i][j]}x {j}\n'
-
-    order_string += "\n====Condensed orders====\n"
-    for k in sorted (condensed_list):
-        order_string += f'{condensed_list[k]}x {k}\n'
-
-    query.edit_message_text(
-        f'Hi {user.first_name}. Start ordering now!\n{order_string}',
-        reply_markup=reply_markup,
-    )
-
-    return RESTAURANTS
-
 def help_command(update: Update, context: CallbackContext) -> int:
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
@@ -169,6 +204,8 @@ def one_meat(update: Update, context: CallbackContext) -> int:
     """Ordering form for one meat options"""
     query = update.callback_query
     query.answer()
+    user = update.effective_user
+    logger.info("User %s has selected one meat at Rong Liang.", user.first_name)
 
     # build InlineKeyboard for food ordering
     keyboard = [
@@ -198,6 +235,8 @@ def two_meats(update: Update, context: CallbackContext) -> int:
     """Ordering form for one meat options"""
     query = update.callback_query
     query.answer()
+    user = update.effective_user
+    logger.info("User %s has selected two meats at Rong Liang.", user.first_name)
 
     # build InlineKeyboard for food ordering
     keyboard = [
@@ -255,6 +294,8 @@ def pancake(update: Update, context: CallbackContext) -> int:
     """Mr Bean pancakes ordering menu"""
     query = update.callback_query
     query.answer()
+    user = update.effective_user
+    logger.info("User %s has selected pancake at Mr Bean.", user.first_name)
 
     # build InlineKeyboard for food ordering
     keyboard = [
@@ -283,6 +324,8 @@ def eggwich(update: Update, context: CallbackContext) -> int:
     """Mr Bean eggwich ordering menu"""
     query = update.callback_query
     query.answer()
+    user = update.effective_user
+    logger.info("User %s has selected eggwich at Mr Bean.", user.first_name)
 
     # build InlineKeyboard for food ordering
     keyboard = [
@@ -302,9 +345,10 @@ def eggwich(update: Update, context: CallbackContext) -> int:
 
 def drinks(update: Update, context: CallbackContext) -> int:
     """Mr Bean drinks ordering menu"""
-    user = update.effective_user
     query = update.callback_query
     query.answer()
+    user = update.effective_user
+    logger.info("User %s has selected drinks at Mr Bean.", user.first_name)
 
     # build InlineKeyboard for food ordering
     keyboard = [
@@ -329,6 +373,8 @@ def dish(input_name):
         dish_name = input_name
         query = update.callback_query
         query.answer()
+        user = update.effective_user
+        logger.info("User %s has ordered %s.", user.first_name, dish_name)
         keyboard = [
             [
                 InlineKeyboardButton("See orders/Order more", callback_data=str(RESTART)),
@@ -372,8 +418,11 @@ def main() -> None:
         states={
             ORDER_LIST: [
                 CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
+                CallbackQueryHandler(clear, pattern='^' + str(CLEAR) + '$'),
             ],
             RESTAURANTS: [
+                CallbackQueryHandler(restart, pattern='^' + str(RESTART) + '$'),
+                CallbackQueryHandler(clear, pattern='^' + str(CLEAR) + '$'),
                 CallbackQueryHandler(rongliang, pattern='^' + str(RONGLIANG) + '$'),
                 CallbackQueryHandler(mrbean, pattern='^' + str(MRBEAN) + '$')
             ],
